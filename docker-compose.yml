@@ -1,0 +1,29 @@
+services:
+
+  db:
+    healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+    interval: 5s
+    timeout: 5s
+    retries: 5
+    condition: service_healthy
+    volumes:
+      - /var/lib/postgresql/data
+    restart:  unless-stopped
+
+  backend:
+    expose:
+      - 3007
+    variables:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    ports:
+      - 8087:80
+    depends_on:
+      - backend
+
+  
